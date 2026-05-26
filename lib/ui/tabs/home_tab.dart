@@ -34,17 +34,23 @@ class _HomeTabState extends State<HomeTab> {
   QuizProvider? _quizProvider;
 
   late final ItemScrollController _itemScrollController;
+  late final ItemPositionsListener _itemPositionsListener;
   final ScrollController _scrollController = ScrollController();
 
   int _lastAutoScrolledUnitId = -1;
   int _lastUnitsSignature = 0;
   int _lastScoresSignature = 0;
   bool _didInitDependencies = false;
+  bool _didInitialJump = false;
+  final ValueNotifier<bool> _fabScrollsToTop = ValueNotifier<bool>(true);
+  int _itemCount = 0;
 
   @override
   void initState() {
     super.initState();
     _itemScrollController = ItemScrollController();
+    _itemPositionsListener = ItemPositionsListener.create();
+    _itemPositionsListener.itemPositions.addListener(_onPositionsChanged);
   }
 
   @override
@@ -60,8 +66,49 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   void dispose() {
+    _itemPositionsListener.itemPositions.removeListener(_onPositionsChanged);
+    _fabScrollsToTop.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onPositionsChanged() {
+    if (!mounted || _itemCount == 0) return;
+    final positions = _itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+
+    final int minIndex = positions
+        .map((item) => item.index)
+        .reduce((a, b) => a < b ? a : b);
+    final int maxIndex = positions
+        .map((item) => item.index)
+        .reduce((a, b) => a > b ? a : b);
+
+    const int edgeThreshold = 2;
+    final bool nearVisualTop = maxIndex >= (_itemCount - 1 - edgeThreshold);
+    final bool nextScrollsToTop = !nearVisualTop;
+
+    if (nextScrollsToTop != _fabScrollsToTop.value) {
+      _fabScrollsToTop.value = nextScrollsToTop;
+    }
+  }
+
+  void _scrollToVisualBottom() {
+    if (!_itemScrollController.isAttached || _itemCount == 0) return;
+    _itemScrollController.scrollTo(
+      index: 0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _scrollToVisualTop(int itemCount) {
+    if (!_itemScrollController.isAttached || itemCount <= 0) return;
+    _itemScrollController.scrollTo(
+      index: itemCount - 1,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   void init() async {
@@ -118,21 +165,19 @@ class _HomeTabState extends State<HomeTab> {
       final int unitIndex = units.indexWhere((unit) => unit.id == activeUnitId);
       if (unitIndex == -1) return;
       final int listIndex = _listIndexFromUnitIndex(unitIndex);
+
+      if (!_didInitialJump) {
+        _didInitialJump = true;
+        _itemScrollController.jumpTo(index: listIndex);
+        return;
+      }
+
       _itemScrollController.scrollTo(
         index: listIndex,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
     });
-  }
-
-  void _scrollToVisualTop(int itemCount) {
-    if (!_itemScrollController.isAttached || itemCount <= 0) return;
-    _itemScrollController.scrollTo(
-      index: itemCount - 1,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
   }
 
   @override
@@ -145,19 +190,30 @@ class _HomeTabState extends State<HomeTab> {
       floatingActionButton: SizedBox(
         width: 40.r,
         height: 40.r,
-        child: FloatingActionButton(
-          backgroundColor: MyColors.themeColors[300],
-          elevation: 1,
-          onPressed: () {
-            final units = context.read<UnitsProvider>().units;
-            if (units == null) return;
-            _scrollToVisualTop(_listItemCount(units.length));
+        child: ValueListenableBuilder<bool>(
+          valueListenable: _fabScrollsToTop,
+          builder: (context, scrollsToTop, child) {
+            return FloatingActionButton(
+              backgroundColor: MyColors.themeColors[300],
+              elevation: 1,
+              onPressed: () {
+                final units = context.read<UnitsProvider>().units;
+                if (units == null) return;
+                if (scrollsToTop) {
+                  _scrollToVisualTop(_listItemCount(units.length));
+                } else {
+                  _scrollToVisualBottom();
+                }
+              },
+              tooltip: scrollsToTop ? 'Scroll up' : 'Scroll down',
+              child: HugeIcon(
+                icon: scrollsToTop
+                    ? HugeIcons.strokeRoundedArrowUp01
+                    : HugeIcons.strokeRoundedArrowDown01,
+                color: Colors.white,
+              ),
+            );
           },
-          tooltip: 'Scroll up',
-          child: const HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowUp01,
-            color: Colors.white,
-          ),
         ),
       ),
       body: Stack(
@@ -171,6 +227,7 @@ class _HomeTabState extends State<HomeTab> {
               }
 
               final units = provider.units!;
+              _itemCount = _listItemCount(units.length);
               _syncPassedUnits(provider.scores);
               _scheduleScrollToActiveUnit(
                 activeUnitId: activeUnitId,
@@ -180,6 +237,7 @@ class _HomeTabState extends State<HomeTab> {
               return ScrollablePositionedList.builder(
                 key: const PageStorageKey<String>('units'),
                 itemScrollController: _itemScrollController,
+                itemPositionsListener: _itemPositionsListener,
                 padding: EdgeInsets.only(
                   right: MediaQuery.of(context).size.width * 0.22,
                   left: MediaQuery.of(context).size.width * 0.22,
@@ -187,7 +245,7 @@ class _HomeTabState extends State<HomeTab> {
                   bottom: MediaQuery.of(context).size.width * 0.10,
                 ),
                 reverse: true,
-                itemCount: _listItemCount(units.length),
+                itemCount: _itemCount,
                 itemBuilder: (context, index) {
                   MyTheme.initialize(context);
 
