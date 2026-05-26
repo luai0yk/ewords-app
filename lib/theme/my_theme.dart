@@ -34,6 +34,7 @@ class MyTheme {
     appBarTheme: AppBarTheme(
       centerTitle: true,
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
       iconTheme: IconThemeData(color: MyColors.themeColors[600]),
     ),
     tabBarTheme: TabBarThemeData(
@@ -73,6 +74,8 @@ class MyTheme {
     iconTheme: const IconThemeData(color: Colors.white12),
     appBarTheme: AppBarTheme(
       centerTitle: true,
+      backgroundColor: Color.fromARGB(255, 20, 18, 24),
+      surfaceTintColor: Color.fromARGB(255, 20, 18, 24),
       iconTheme: IconThemeData(color: MyColors.themeColors[600]),
     ),
     tabBarTheme: const TabBarThemeData(

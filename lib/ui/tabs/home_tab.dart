@@ -11,7 +11,6 @@ import 'package:ewords/utils/ads/reward_ad_manager.dart';
 import 'package:ewords/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hidable/hidable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -35,7 +34,6 @@ class _HomeTabState extends State<HomeTab> {
 
   late final ItemScrollController _itemScrollController;
   late final ItemPositionsListener _itemPositionsListener;
-  final ScrollController _scrollController = ScrollController();
 
   int _lastAutoScrolledUnitId = -1;
   int _lastUnitsSignature = 0;
@@ -68,7 +66,6 @@ class _HomeTabState extends State<HomeTab> {
   void dispose() {
     _itemPositionsListener.itemPositions.removeListener(_onPositionsChanged);
     _fabScrollsToTop.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -285,15 +282,10 @@ class _HomeTabState extends State<HomeTab> {
               );
             },
           ),
-          Hidable(
-            controller: _scrollController,
-            preferredWidgetSize: Size.fromHeight(75.h),
-            deltaFactor: 0.06,
-            child: FloatingAppBar(
-              showRewardedAd: () async {
-                await context.read<RewardAdManager>().showRewardedAd();
-              },
-            ),
+          FloatingAppBar(
+            showRewardedAd: () async {
+              await context.read<RewardAdManager>().showRewardedAd();
+            },
           ),
         ],
       ),

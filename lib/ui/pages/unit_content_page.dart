@@ -4,7 +4,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:hidable/hidable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
@@ -79,13 +78,14 @@ class _UnitContentPageState extends State<UnitContentPage>
     // Store the reference to avoid accessing context in dispose()
     _ttsProvider = context.read<TTSProvider>();
 
-    _tabBarIconsVisibilityProvider =
-        context.read<TabBarIconsVisibilityProvider>();
+    _tabBarIconsVisibilityProvider = context
+        .read<TabBarIconsVisibilityProvider>();
 
     /*The speech language or accent
     * its value comes from the settings page (Accent's ListTile>>RadioListTile)*/
-    _flutterTts!
-        .setLanguage(context.read<SettingsProvider>().speechAccentCode!);
+    _flutterTts!.setLanguage(
+      context.read<SettingsProvider>().speechAccentCode!,
+    );
 
     _ttsProvider!.setCompletionHandler();
     _ttsProvider!.setProgressHandler();
@@ -109,161 +109,154 @@ class _UnitContentPageState extends State<UnitContentPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Hidable(
-        deltaFactor: 0.06,
-        controller: scrollController,
-        preferredWidgetSize: Size.fromHeight(130.sp),
-        child: AppBar(
-          title: Text(unit!.passageTitle),
-          leading: IconButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            tooltip: 'Back',
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowLeft01,
-              color: MyColors.themeColors[300]!,
-            ),
+      appBar: AppBar(
+        title: Text(unit!.passageTitle),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          tooltip: 'Back',
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: MyColors.themeColors[300]!,
           ),
-          actions: [
-            Selector<TabBarIconsVisibilityProvider, int>(
-              builder: (context, tabIndex, child) {
-                return tabIndex == 2
-                    ? IconButton(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        onPressed: () {
-                          DialogHelper.show(
-                            context: context,
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) {
-                              return AppDialog(
-                                title: 'Rewarded Ad',
-                                content: 'Watch an ad and get 6 diamonds.',
-                                okayText: 'Watch Ad',
-                                onOkay: () {
-                                  context
-                                      .read<RewardAdManager>()
-                                      .showRewardedAd();
-                                },
-                                onCancel: () => null,
-                              );
-                            },
-                          );
-                        },
-                        tooltip: 'Diamonds',
-                        icon: Row(
-                          children: [
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedDiamond02,
-                              color: MyColors.themeColors[300]!,
-                            ),
-                            const SizedBox(width: 2),
-                            Selector<DiamondsProvider, int>(
-                              builder: (context, diamonds, child) {
-                                return Text(
-                                  '$diamonds',
-                                  style: MyTheme().mainTextStyle.copyWith(
-                                        color: MyColors.themeColors[300],
-                                      ),
+        ),
+        actions: [
+          Selector<TabBarIconsVisibilityProvider, int>(
+            builder: (context, tabIndex, child) {
+              return tabIndex == 2
+                  ? IconButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      onPressed: () {
+                        DialogHelper.show(
+                          context: context,
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) {
+                                return AppDialog(
+                                  title: 'Rewarded Ad',
+                                  content: 'Watch an ad and get 6 diamonds.',
+                                  okayText: 'Watch Ad',
+                                  onOkay: () {
+                                    context
+                                        .read<RewardAdManager>()
+                                        .showRewardedAd();
+                                  },
+                                  onCancel: () => null,
                                 );
                               },
-                              selector: (ctx, provider) => provider.diamonds,
-                            ),
-                          ],
-                        ),
-                      )
-                    : Row(
+                        );
+                      },
+                      tooltip: 'Diamonds',
+                      icon: Row(
                         children: [
-                          IconButton(
-                            onPressed: () {
-                              BottomSheetHelper.show(
-                                context: context,
-                                builder: (context) => ShareUnitContentDialog(
-                                  unit: unit!,
-                                  tabIndex: tabController!.index,
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedDiamond02,
+                            color: MyColors.themeColors[300]!,
+                          ),
+                          const SizedBox(width: 2),
+                          Selector<DiamondsProvider, int>(
+                            builder: (context, diamonds, child) {
+                              return Text(
+                                '$diamonds',
+                                style: MyTheme().mainTextStyle.copyWith(
+                                  color: MyColors.themeColors[300],
                                 ),
                               );
                             },
-                            tooltip: 'Share',
-                            icon: HugeIcon(
-                              icon: HugeIcons.strokeRoundedShare08,
-                              color: MyColors.themeColors[300]!,
-                            ),
-                          ),
-                          Selector<TTSProvider, bool>(
-                            selector: (context, provider) {
-                              return provider.isPlaying;
-                            },
-                            builder: (context, isPlaying, child) {
-                              return IconButton(
-                                onPressed: () async {
-                                  if (isPlaying) {
-                                    _flutterTts!.stop();
-                                    _ttsProvider!.stop();
-                                  } else {
-                                    if (tabController!.index == 0) {
-                                      _flutterTts!.speak(
-                                        await CombineUnitWords.getCombinedWords(
-                                          unit!.words,
-                                        ),
-                                      );
-                                    } else if (tabController!.index == 1) {
-                                      _flutterTts!.speak(unit!.passage);
-                                    }
-                                    _ttsProvider!.play();
-                                  }
-                                },
-                                tooltip: isPlaying ? 'Stop' : 'Speak',
-                                icon: isPlaying &&
-                                        _ttsProvider!.currentPlayingWordID == -1
-                                    ? HugeIcon(
-                                        icon: HugeIcons.strokeRoundedStop,
-                                        color: MyColors.themeColors[300]!,
-                                      )
-                                    : HugeIcon(
-                                        icon:
-                                            HugeIcons.strokeRoundedMegaphone02,
-                                        color: MyColors.themeColors[300]!,
-                                      ),
-                              );
-                            },
+                            selector: (ctx, provider) => provider.diamonds,
                           ),
                         ],
-                      );
-              },
-              selector: (context, value) {
-                return value.tabNumber;
-              },
-            )
-          ],
-          bottom: TabBar(
-            controller: tabController,
-            dividerHeight: 0,
-            labelColor: Colors.white,
-            indicator: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: MyColors.themeColors[300],
-            ),
-            indicatorSize: TabBarIndicatorSize.tab,
-            splashBorderRadius: BorderRadius.circular(10.sp),
-            indicatorPadding: EdgeInsets.all(6.sp),
-            labelStyle: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-            ),
-            unselectedLabelStyle: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
-            ),
-            tabs: const [
-              Tab(child: Text('WORDS')),
-              Tab(child: Text('PASSAGE')),
-              Tab(child: Text('QUIZ')),
-            ],
+                      ),
+                    )
+                  : Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            BottomSheetHelper.show(
+                              context: context,
+                              builder: (context) => ShareUnitContentDialog(
+                                unit: unit!,
+                                tabIndex: tabController!.index,
+                              ),
+                            );
+                          },
+                          tooltip: 'Share',
+                          icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedShare08,
+                            color: MyColors.themeColors[300]!,
+                          ),
+                        ),
+                        Selector<TTSProvider, bool>(
+                          selector: (context, provider) {
+                            return provider.isPlaying;
+                          },
+                          builder: (context, isPlaying, child) {
+                            return IconButton(
+                              onPressed: () async {
+                                if (isPlaying) {
+                                  _flutterTts!.stop();
+                                  _ttsProvider!.stop();
+                                } else {
+                                  if (tabController!.index == 0) {
+                                    _flutterTts!.speak(
+                                      await CombineUnitWords.getCombinedWords(
+                                        unit!.words,
+                                      ),
+                                    );
+                                  } else if (tabController!.index == 1) {
+                                    _flutterTts!.speak(unit!.passage);
+                                  }
+                                  _ttsProvider!.play();
+                                }
+                              },
+                              tooltip: isPlaying ? 'Stop' : 'Speak',
+                              icon:
+                                  isPlaying &&
+                                      _ttsProvider!.currentPlayingWordID == -1
+                                  ? HugeIcon(
+                                      icon: HugeIcons.strokeRoundedStop,
+                                      color: MyColors.themeColors[300]!,
+                                    )
+                                  : HugeIcon(
+                                      icon: HugeIcons.strokeRoundedMegaphone02,
+                                      color: MyColors.themeColors[300]!,
+                                    ),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+            },
+            selector: (context, value) {
+              return value.tabNumber;
+            },
           ),
-          titleTextStyle: MyTheme().appBarTitleStyle,
+        ],
+        bottom: TabBar(
+          controller: tabController,
+          dividerHeight: 0,
+          labelColor: Colors.white,
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: MyColors.themeColors[300],
+          ),
+          indicatorSize: TabBarIndicatorSize.tab,
+          splashBorderRadius: BorderRadius.circular(10.sp),
+          indicatorPadding: EdgeInsets.all(6.sp),
+          labelStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+          unselectedLabelStyle: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14.sp,
+          ),
+          tabs: const [
+            Tab(child: Text('WORDS')),
+            Tab(child: Text('PASSAGE')),
+            Tab(child: Text('QUIZ')),
+          ],
         ),
+        titleTextStyle: MyTheme().appBarTitleStyle,
       ),
+
       body: Column(
         children: [
           Expanded(
@@ -271,16 +264,12 @@ class _UnitContentPageState extends State<UnitContentPage>
               dragStartBehavior: DragStartBehavior.start,
               controller: tabController,
               children: [
-                WordsTab(
-                  unit: unit!,
+                WordsTab(unit: unit!, scrollController: scrollController),
+                PassageTab(
+                  passage: unit!.passage,
                   scrollController: scrollController,
                 ),
-                PassageTab(
-                    passage: unit!.passage, scrollController: scrollController),
-                QuizTab(
-                  unit: unit!,
-                  tabController: tabController!,
-                ),
+                QuizTab(unit: unit!, tabController: tabController!),
                 //TimerProgressBar(),
               ],
             ),

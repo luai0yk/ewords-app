@@ -5,7 +5,6 @@ import 'package:ewords/utils/helpers/dialog_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:hidable/hidable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
@@ -28,12 +27,10 @@ class FavoriteTab extends StatefulWidget {
 class _FavoriteTabState extends State<FavoriteTab> {
   FlutterTts? _flutterTts;
   TTSProvider? _ttsProvider;
-  ScrollController? _scrollController;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
   }
 
   @override
@@ -49,8 +46,9 @@ class _FavoriteTabState extends State<FavoriteTab> {
 
     /*The speech language or accent
     * its value comes from the settings page (Accent's ListTile>>RadioListTile)*/
-    _flutterTts!
-        .setLanguage(context.read<SettingsProvider>().speechAccentCode!);
+    _flutterTts!.setLanguage(
+      context.read<SettingsProvider>().speechAccentCode!,
+    );
 
     _ttsProvider!.setCompletionHandler();
   }
@@ -67,18 +65,13 @@ class _FavoriteTabState extends State<FavoriteTab> {
     MyTheme.initialize(context);
 
     return Scaffold(
-      appBar: Hidable(
-        deltaFactor: 0.06,
-        preferredWidgetSize: Size.fromHeight(75.sp),
-        controller: _scrollController!,
-        child: AppBar(
-          title: Text('favorites'.toUpperCase()), // Title of the app bar
-          titleTextStyle: TextStyle(
-            color: MyColors.themeColors[300],
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 2,
-          ),
+      appBar: AppBar(
+        title: Text('favorites'.toUpperCase()),
+        titleTextStyle: TextStyle(
+          color: MyColors.themeColors[300],
+          fontSize: 16.sp,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 2,
         ),
       ),
       body: Consumer<FavoriteWordsProvider>(
@@ -124,7 +117,6 @@ class _FavoriteTabState extends State<FavoriteTab> {
               final favoriteList = snapshot.data;
 
               return ListView.builder(
-                controller: _scrollController,
                 padding: const EdgeInsets.all(10),
                 itemCount: favoriteList!.length, // Count of favorite words
                 itemBuilder: (context, index) {
@@ -158,8 +150,9 @@ class _FavoriteTabState extends State<FavoriteTab> {
                                 _flutterTts!.speak(
                                   '${favorite.word}\n${favorite.definition}\nexample\n${favorite.example}',
                                 );
-                                _ttsProvider!
-                                    .play(currentPlayingWordID: favorite.id);
+                                _ttsProvider!.play(
+                                  currentPlayingWordID: favorite.id,
+                                );
                               }
                             },
                             tooltip: currentPlayingWordID == favorite.id

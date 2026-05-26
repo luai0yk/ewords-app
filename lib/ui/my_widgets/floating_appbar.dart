@@ -25,6 +25,7 @@ class FloatingAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MyCard(
+      height: kToolbarHeight,
       margin: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 5,
         left: MediaQuery.of(context).padding.top / 2,
@@ -67,8 +68,8 @@ class FloatingAppBar extends StatelessWidget {
                       return Text(
                         '$diamonds',
                         style: MyTheme().mainTextStyle.copyWith(
-                              color: MyColors.themeColors[300],
-                            ),
+                          color: MyColors.themeColors[300],
+                        ),
                       );
                     },
                     selector: (ctx, provider) => provider.diamonds,
@@ -80,11 +81,11 @@ class FloatingAppBar extends StatelessWidget {
             RichText(
               text: TextSpan(
                 style: MyTheme().secondaryTextStyle.copyWith(
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14.sp,
-                      //backgroundColor: Colors.red,
-                    ),
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp,
+                  //backgroundColor: Colors.red,
+                ),
                 children: [
                   WidgetSpan(
                     child: AppBadge(
@@ -137,8 +138,9 @@ class FloatingAppBar extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (context) => const UnitContentPage(),
                         settings: RouteSettings(
-                          arguments:
-                              context.read<UnitsProvider>().units![index],
+                          arguments: context
+                              .read<UnitsProvider>()
+                              .units![index],
                         ),
                       ),
                     );
