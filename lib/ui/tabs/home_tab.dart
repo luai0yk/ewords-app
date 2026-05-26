@@ -1,4 +1,3 @@
-import 'package:anchor_scroll_controller/anchor_scroll_controller.dart';
 import 'package:ewords/models/quiz_score_model.dart';
 import 'package:ewords/models/unit_model.dart';
 import 'package:ewords/provider/quiz_provider.dart';
@@ -15,6 +14,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hidable/hidable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../provider/diamonds_provider.dart';
 import '../../utils/helpers/snackbar_helper.dart';
@@ -32,19 +32,26 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> {
   DiamondsProvider? _diamondsProvider;
   QuizProvider? _quizProvider;
-  int currentActiveUnit = 0;
 
-  late final AnchorScrollController _scrollAnchorController;
+  late final ItemScrollController _itemScrollController;
+  final ScrollController _scrollController = ScrollController();
+
+  int _lastAutoScrolledUnitId = -1;
+  int _lastUnitsSignature = 0;
+  int _lastScoresSignature = 0;
+  bool _didInitDependencies = false;
 
   @override
   void initState() {
     super.initState();
-    _scrollAnchorController = AnchorScrollController();
+    _itemScrollController = ItemScrollController();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_didInitDependencies) return;
+    _didInitDependencies = true;
     _diamondsProvider = context.read<DiamondsProvider>();
     _quizProvider = context.read<QuizProvider>();
     _quizProvider!.init();
@@ -53,6 +60,7 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -60,8 +68,79 @@ class _HomeTabState extends State<HomeTab> {
     await Provider.of<UnitsProvider>(context, listen: false).fetchScores();
   }
 
+  int _listItemCount(int unitCount) {
+    return unitCount + (unitCount ~/ 30);
+  }
+
+  bool _isLevelCardIndex(int listIndex) {
+    return listIndex == 0 || listIndex % 31 == 0;
+  }
+
+  int _unitIndexFromListIndex(int listIndex) {
+    return listIndex - ((listIndex ~/ 31) + 1);
+  }
+
+  int _listIndexFromUnitIndex(int unitIndex) {
+    return unitIndex + (unitIndex ~/ 30) + 1;
+  }
+
+  void _syncPassedUnits(List<QuizScoreModel>? scores) {
+    if (scores == null || scores.isEmpty) return;
+    final int signature = Object.hashAll(
+      scores.map((score) => Object.hash(score.id, score.correctAnswers)),
+    );
+    if (signature == _lastScoresSignature) return;
+    _lastScoresSignature = signature;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<QuizProvider>().setPassedUnitsFromScores(scores);
+    });
+  }
+
+  void _scheduleScrollToActiveUnit({
+    required int activeUnitId,
+    required List<UnitModel> units,
+  }) {
+    if (activeUnitId <= 0 || units.isEmpty) return;
+
+    final int unitsSignature = Object.hashAll(units.map((u) => u.id));
+    if (activeUnitId == _lastAutoScrolledUnitId &&
+        unitsSignature == _lastUnitsSignature) {
+      return;
+    }
+
+    _lastAutoScrolledUnitId = activeUnitId;
+    _lastUnitsSignature = unitsSignature;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_itemScrollController.isAttached) return;
+      final int unitIndex = units.indexWhere((unit) => unit.id == activeUnitId);
+      if (unitIndex == -1) return;
+      final int listIndex = _listIndexFromUnitIndex(unitIndex);
+      _itemScrollController.scrollTo(
+        index: listIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  void _scrollToVisualTop(int itemCount) {
+    if (!_itemScrollController.isAttached || itemCount <= 0) return;
+    _itemScrollController.scrollTo(
+      index: itemCount - 1,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final int activeUnitId = context.select<QuizProvider, int>(
+      (provider) => provider.currentActiveUnit,
+    );
+
     return Scaffold(
       floatingActionButton: SizedBox(
         width: 40.r,
@@ -70,11 +149,9 @@ class _HomeTabState extends State<HomeTab> {
           backgroundColor: MyColors.themeColors[300],
           elevation: 1,
           onPressed: () {
-            _scrollAnchorController.scrollToIndex(
-              index: currentActiveUnit - 1,
-              scrollSpeed: 50,
-              curve: Curves.linear,
-            );
+            final units = context.read<UnitsProvider>().units;
+            if (units == null) return;
+            _scrollToVisualTop(_listItemCount(units.length));
           },
           tooltip: 'Scroll up',
           child: const HugeIcon(
@@ -92,9 +169,17 @@ class _HomeTabState extends State<HomeTab> {
                   child: CircularProgressIndicator(strokeWidth: 10),
                 );
               }
-              return ListView.builder(
+
+              final units = provider.units!;
+              _syncPassedUnits(provider.scores);
+              _scheduleScrollToActiveUnit(
+                activeUnitId: activeUnitId,
+                units: units,
+              );
+
+              return ScrollablePositionedList.builder(
                 key: const PageStorageKey<String>('units'),
-                controller: _scrollAnchorController,
+                itemScrollController: _itemScrollController,
                 padding: EdgeInsets.only(
                   right: MediaQuery.of(context).size.width * 0.22,
                   left: MediaQuery.of(context).size.width * 0.22,
@@ -102,53 +187,48 @@ class _HomeTabState extends State<HomeTab> {
                   bottom: MediaQuery.of(context).size.width * 0.10,
                 ),
                 reverse: true,
-                itemCount:
-                    (provider.units!.length + provider.units!.length ~/ 30),
+                itemCount: _listItemCount(units.length),
                 itemBuilder: (context, index) {
                   MyTheme.initialize(context);
 
-                  if (index == 0 || (index % 31 == 0)) {
+                  if (_isLevelCardIndex(index)) {
                     return MyCard(
                       child: RichText(
                         text: TextSpan(
                           style: MyTheme().secondaryTextStyle.copyWith(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
                           children: [
                             WidgetSpan(
                               child: AppBadge(
-                                text: MyConstants.levelCodes[
-                                    provider.units![index].bookId - 1],
+                                text: MyConstants
+                                    .levelCodes[units[index].bookId - 1],
                               ),
                             ),
                             TextSpan(
                               text:
-                                  '  ${MyConstants.levelDescription[provider.units![index].bookId - 1]}',
+                                  '  ${MyConstants.levelDescription[units[index].bookId - 1]}',
                             ),
                           ],
                         ),
                       ),
                     );
-                  } else {
-                    final itemIndex = index - ((index ~/ 31) + 1);
-
-                    return AnchorItemWrapper(
-                      index: itemIndex,
-                      controller: _scrollAnchorController,
-                      child: _buildListItem(
-                        itemIndex,
-                        provider.units ?? [],
-                        provider.scores ?? [],
-                      ),
-                    );
                   }
+
+                  final itemIndex = _unitIndexFromListIndex(index);
+
+                  return _buildListItem(
+                    itemIndex,
+                    units,
+                    provider.scores ?? [],
+                  );
                 },
               );
             },
           ),
           Hidable(
-            controller: _scrollAnchorController,
+            controller: _scrollController,
             preferredWidgetSize: Size.fromHeight(75.h),
             deltaFactor: 0.06,
             child: FloatingAppBar(
@@ -163,24 +243,21 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Widget _buildListItem(
-      int index, List<UnitModel> units, List<QuizScoreModel> scores) {
+    int index,
+    List<UnitModel> units,
+    List<QuizScoreModel> scores,
+  ) {
     Color? unPassedUnitColor = Theme.of(context).brightness == Brightness.light
         ? MyColors.themeColors[50]
-        : MyColors.themeColors[50]!.withOpacity(0.1);
+        : MyColors.themeColors[50]!.withValues(alpha: 0.1);
 
     final UnitModel unit = units[index];
     Alignment alignment = _getAlignment(index);
 
-    context.read<QuizProvider>().checkPassedUnits(
-          id: unit.id,
-          bookId: unit.bookId,
-          unitId: unit.unitId,
-        );
-
     return Selector<QuizProvider, Map<String, dynamic>>(
       builder: (context, passedUnits, child) {
         bool isPassed = passedUnits['is_passed'];
-        currentActiveUnit = passedUnits['current_active_unit'];
+        final int activeUnitId = passedUnits['current_active_unit'];
         QuizScoreModel? score;
 
         if (isPassed && index < scores.length) {
@@ -196,7 +273,7 @@ class _HomeTabState extends State<HomeTab> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    if (isPassed || currentActiveUnit == unit.id) {
+                    if (isPassed || activeUnitId == unit.id) {
                       MyTheme.initialize(context);
                       Navigator.push(
                         context,
@@ -204,32 +281,33 @@ class _HomeTabState extends State<HomeTab> {
                           builder: (context) => const UnitContentPage(),
                           settings: RouteSettings(arguments: unit),
                         ),
-                      ).then(
-                        (value) {
-                          init();
-                          _quizProvider!.init();
-                        },
-                      );
+                      ).then((value) {
+                        init();
+                        _quizProvider!.init();
+                      });
                     } else {
                       SnackBarHelper.show(
                         context: context,
                         widget: MySnackBar.create(
-                            content: 'This unit is locked $index'),
+                          content: 'This unit is locked $index',
+                        ),
                       );
                     }
                   },
                   child: Container(
-                    height: currentActiveUnit == unit.id ? 85.r : 72.r,
-                    width: currentActiveUnit == unit.id ? 85.r : 72.r,
+                    height: activeUnitId == unit.id ? 85.r : 72.r,
+                    width: activeUnitId == unit.id ? 85.r : 72.r,
                     margin: const EdgeInsets.only(bottom: 5),
                     decoration: BoxDecoration(
-                      color: isPassed || currentActiveUnit == unit.id
+                      color: isPassed || activeUnitId == unit.id
                           ? MyColors.themeColors[300]
                           : unPassedUnitColor,
                       borderRadius: BorderRadius.circular(90),
-                      border: currentActiveUnit == unit.id
+                      border: activeUnitId == unit.id
                           ? Border.all(
-                              color: MyColors.themeColors[50]!.withOpacity(.7),
+                              color: MyColors.themeColors[50]!.withValues(
+                                alpha: .7,
+                              ),
                               width: 5,
                             )
                           : const Border(),
@@ -238,7 +316,7 @@ class _HomeTabState extends State<HomeTab> {
                     child: Text(
                       '${index + 1}',
                       style: TextStyle(
-                        color: isPassed || currentActiveUnit == unit.id
+                        color: isPassed || activeUnitId == unit.id
                             ? Colors.white
                             : MyColors.themeColors[300],
                         fontSize: 35.sp,

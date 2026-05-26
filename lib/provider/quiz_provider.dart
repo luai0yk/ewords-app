@@ -5,6 +5,7 @@ import 'package:ewords/db/quiz_score_helper.dart';
 import 'package:ewords/models/unit_model.dart';
 import 'package:ewords/provider/diamonds_provider.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/quiz_score_model.dart';
@@ -42,11 +43,22 @@ class QuizProvider extends ChangeNotifier {
   int get wrongCount => _wrongCount;
   bool get isCovered => _isCovered;
   bool get isQuizStarted => _isQuizStarted;
+  int get currentActiveUnit => _currentActiveUnit;
 
   void init() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _currentActiveUnit = prefs.getInt('current_active_unit') ?? 1;
+    _setCurrentActiveUnit(prefs.getInt('current_active_unit') ?? 1);
+  }
+
+  void _setCurrentActiveUnit(int value) {
+    if (_currentActiveUnit == value) return;
+    _currentActiveUnit = value;
     notifyListeners();
+  }
+
+  Future<void> refreshCurrentActiveUnit() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _setCurrentActiveUnit(prefs.getInt('current_active_unit') ?? 1);
   }
 
   set setProgress(double val) => _progress = val;
@@ -205,7 +217,9 @@ class QuizProvider extends ChangeNotifier {
 
   String sanitizeDefinition(String definition, String correctAnswer) {
     return definition.replaceAll(
-        RegExp('\\b$correctAnswer\\b', caseSensitive: false), '_____');
+      RegExp('\\b$correctAnswer\\b', caseSensitive: false),
+      '_____',
+    );
   }
 
   Future<void> insertOrUpdateQuizScore({required QuizScoreModel score}) async {
@@ -222,24 +236,44 @@ class QuizProvider extends ChangeNotifier {
     int currentActiveUnit = prefs.getInt('current_active_unit') ?? 1;
 
     if (score.totalScore >= 50 && score.id >= currentActiveUnit) {
-      await prefs.setInt(
-        'current_active_unit',
-        (score.id + 1),
-      );
+      await prefs.setInt('current_active_unit', (score.id + 1));
+      currentActiveUnit = score.id + 1;
     }
 
-    checkPassedUnits(
-      id: score.id,
-      bookId: score.bookId,
-      unitId: score.unitId,
-    );
+    _setCurrentActiveUnit(currentActiveUnit);
+
+    checkPassedUnits(id: score.id, bookId: score.bookId, unitId: score.unitId);
+  }
+
+  void setPassedUnitsFromScores(List<QuizScoreModel> scores) {
+    final Set<int> nextPassedUnits = <int>{};
+
+    for (final score in scores) {
+      if (score.totalScore >= 50) {
+        nextPassedUnits.add(score.id);
+        nextPassedUnits.add(
+          score.id <= 179 && score.id >= _currentActiveUnit
+              ? (score.id + 1)
+              : 0,
+        );
+      }
+    }
+
+    if (setEquals(_passedUnitIds, nextPassedUnits)) return;
+    _passedUnitIds
+      ..clear()
+      ..addAll(nextPassedUnits);
+    notifyListeners();
   }
 
   // A set to hold the IDs of passed units
   final Set<int> _passedUnitIds = <int>{};
 
-  Future<void> checkPassedUnits(
-      {required int id, required int bookId, required int unitId}) async {
+  Future<void> checkPassedUnits({
+    required int id,
+    required int bookId,
+    required int unitId,
+  }) async {
     bool isPassed = await QuizScoreHelper.instance.isPassed(
       bookId: bookId,
       unitId: unitId,
@@ -254,7 +288,7 @@ class QuizProvider extends ChangeNotifier {
       _passedUnitIds.remove(id);
     }
 
-    notifyListeners();
+    _setCurrentActiveUnit(currentActiveUnit);
   }
 
   Map<String, dynamic> getUnitStatus(int id) {
@@ -271,9 +305,10 @@ class QuizProvider extends ChangeNotifier {
   }
 
   // Function to help the user choose the right answers but minus 3 diamonds
-  Future<void> useHelp(
-      {required DiamondsProvider diamondProvider,
-      required Function() onError}) async {
+  Future<void> useHelp({
+    required DiamondsProvider diamondProvider,
+    required Function() onError,
+  }) async {
     if (diamondProvider.diamonds >= 3) {
       _selectedAnswer = _correctAnswer;
 
