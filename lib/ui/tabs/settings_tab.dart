@@ -71,10 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     icon: HugeIcons.strokeRoundedMoon02,
                     color: MyColors.themeColors[300]!,
                   ),
-            title: Text(
-              'Theme',
-              style: MyTheme().mainTextStyle,
-            ),
+            title: Text('Theme', style: MyTheme().mainTextStyle),
             subtitle: Text(
               context.read<SettingsProvider>().themeState!,
               style: MyTheme().secondaryTextStyle,
@@ -91,10 +88,7 @@ class _SettingsPageState extends State<SettingsPage> {
           // Section title for TTS settings
           Padding(
             padding: EdgeInsets.only(top: 15.sp, left: 15.sp, right: 15.sp),
-            child: Text(
-              'TTS settings',
-              style: MyTheme().headSettingStyle,
-            ),
+            child: Text('TTS settings', style: MyTheme().headSettingStyle),
           ),
           // List tile for accent selection
           ListTile(
@@ -113,10 +107,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 return val.speechAccentCode!;
               },
             ),
-            title: Text(
-              'Accent',
-              style: MyTheme().mainTextStyle,
-            ),
+            title: Text('Accent', style: MyTheme().mainTextStyle),
             subtitle: Text(
               'This is the accent of text-to-speech',
               style: MyTheme().secondaryTextStyle,
@@ -138,10 +129,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 icon: HugeIcons.strokeRoundedMegaphone02,
                 color: MyColors.themeColors[300]!,
               ),
-              title: Text(
-                'Speech Rate',
-                style: MyTheme().mainTextStyle,
-              ),
+              title: Text('Speech Rate', style: MyTheme().mainTextStyle),
               subtitle: Slider(
                 inactiveColor: MyColors.themeColors[50],
                 thumbColor: MyColors.themeColors[500],
@@ -150,17 +138,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 min: 0.2,
                 activeColor: MyColors.themeColors[300],
                 onChanged: (value) {
-                  context
-                      .read<SettingsProvider>()
-                      .setSpeechRate(value); // Update speech rate
+                  context.read<SettingsProvider>().setSpeechRate(
+                    value,
+                  ); // Update speech rate
                 },
               ),
               trailing: Text(
                 value.toString().substring(0, 3),
                 style: MyTheme().secondaryTextStyle.copyWith(
-                      fontSize: 12.sp,
-                      color: MyColors.themeColors[300],
-                    ),
+                  fontSize: 12.sp,
+                  color: MyColors.themeColors[300],
+                ),
               ),
             ),
           ),
@@ -171,35 +159,36 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: HugeIcons.strokeRoundedDownload02,
               color: MyColors.themeColors[300]!,
             ),
-            title: Text(
-              'Download TTS',
-              style: MyTheme().mainTextStyle,
-            ),
+            title: Text('Download TTS', style: MyTheme().mainTextStyle),
             subtitle: RichText(
-              text: TextSpan(style: MyTheme().secondaryTextStyle, children: [
-                const TextSpan(
-                  text: 'Download an accent if not downloaded yet, ',
-                ),
-                WidgetSpan(
-                  child: InkWell(
-                    child: Text(
-                      'help'.toUpperCase(),
-                      style: MyTheme().secondaryTextStyle.copyWith(
-                            fontSize: 12.sp,
-                            color: MyColors.themeColors[300],
-                          ),
-                    ),
-                    onTap: () {
-                      DialogHelper.show(
-                        context: context,
-                        pageBuilder: (context, animation, secondaryAnimation) {
-                          return const DownloadTtsAssistantDialog();
-                        },
-                      ); // Show help dialog for TTS download
-                    },
+              text: TextSpan(
+                style: MyTheme().secondaryTextStyle,
+                children: [
+                  const TextSpan(
+                    text: 'Download an accent if not downloaded yet, ',
                   ),
-                ),
-              ]),
+                  WidgetSpan(
+                    child: InkWell(
+                      child: Text(
+                        'help'.toUpperCase(),
+                        style: MyTheme().secondaryTextStyle.copyWith(
+                          fontSize: 12.sp,
+                          color: MyColors.themeColors[300],
+                        ),
+                      ),
+                      onTap: () {
+                        DialogHelper.show(
+                          context: context,
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) {
+                                return const DownloadTtsAssistantDialog();
+                              },
+                        ); // Show help dialog for TTS download
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
             onTap: () async {
               // Open Android TTS settings
@@ -220,10 +209,7 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: HugeIcons.strokeRoundedContact,
               color: MyColors.themeColors[300]!,
             ),
-            title: Text(
-              'Contact us',
-              style: MyTheme().mainTextStyle,
-            ),
+            title: Text('Contact us', style: MyTheme().mainTextStyle),
             subtitle: Text(
               'Get in touch — we’re always here to help you!',
               style: MyTheme().secondaryTextStyle,
@@ -242,17 +228,14 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: HugeIcons.strokeRoundedGithub,
               color: MyColors.themeColors[300]!,
             ),
-            title: Text(
-              'Contribute',
-              style: MyTheme().mainTextStyle,
-            ),
+            title: Text('Contribute', style: MyTheme().mainTextStyle),
             subtitle: Text(
               'eWords is an open-source project, and we welcome contributions.',
               style: MyTheme().secondaryTextStyle,
             ),
             onTap: () {
               LaunchSite.launch(
-                url: 'https://github.com/luai0yk/ewords',
+                url: 'https://github.com/luai0yk/ewords-app',
                 onError: (url) {
                   MySnackBar.create(content: 'Could not launch $url');
                 },
@@ -264,10 +247,7 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: HugeIcons.strokeRoundedInformationCircle,
               color: MyColors.themeColors[300]!,
             ),
-            title: Text(
-              'App Info',
-              style: MyTheme().mainTextStyle,
-            ),
+            title: Text('App Info', style: MyTheme().mainTextStyle),
             subtitle: Text(
               'eWords version 1.0',
               style: MyTheme().secondaryTextStyle,

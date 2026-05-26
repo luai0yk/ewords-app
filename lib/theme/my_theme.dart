@@ -22,25 +22,22 @@ class MyTheme {
 
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-    colorScheme: ColorScheme.fromSwatch(
-      brightness: Brightness.light,
-      primarySwatch: Colors.blue,
-    ).copyWith(
-      // onSurface: const Color.fromARGB(255, 250, 250, 250),
-      onSurface: Colors.white,
-      surface: const Color.fromARGB(255, 255, 255, 255),
-    ),
+    colorScheme:
+        ColorScheme.fromSwatch(
+          brightness: Brightness.light,
+          primarySwatch: Colors.blue,
+        ).copyWith(
+          // onSurface: const Color.fromARGB(255, 250, 250, 250),
+          onSurface: Colors.white,
+          surface: const Color.fromARGB(255, 255, 255, 255),
+        ),
     appBarTheme: AppBarTheme(
       centerTitle: true,
       backgroundColor: Colors.white,
-      iconTheme: IconThemeData(
-        color: MyColors.themeColors[600],
-      ),
+      iconTheme: IconThemeData(color: MyColors.themeColors[600]),
     ),
-    tabBarTheme: const TabBarTheme(
-      unselectedLabelStyle: TextStyle(
-        color: Colors.black12,
-      ),
+    tabBarTheme: TabBarThemeData(
+      unselectedLabelStyle: TextStyle(color: Colors.black12),
     ),
     iconTheme: const IconThemeData(color: Colors.black12),
     progressIndicatorTheme: ProgressIndicatorThemeData(
@@ -53,13 +50,9 @@ class MyTheme {
       selectionHandleColor: MyColors.themeColors[300],
     ),
     inputDecorationTheme: InputDecorationTheme(
-      hintStyle: const TextStyle(
-        color: Colors.black26,
-      ),
+      hintStyle: const TextStyle(color: Colors.black26),
       enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(
-          color: Colors.black12,
-        ),
+        borderSide: const BorderSide(color: Colors.black12),
         borderRadius: BorderRadius.circular(15),
       ),
     ),
@@ -68,25 +61,22 @@ class MyTheme {
   );
 
   static final ThemeData darkTheme = ThemeData(
-    colorScheme: ColorScheme.fromSwatch(
-      brightness: Brightness.dark,
-      primarySwatch: Colors.blue,
-    ).copyWith(
-      onSurface: const Color.fromARGB(255, 29, 27, 32),
-      surface: const Color.fromARGB(255, 20, 18, 24),
-    ),
+    colorScheme:
+        ColorScheme.fromSwatch(
+          brightness: Brightness.dark,
+          primarySwatch: Colors.blue,
+        ).copyWith(
+          onSurface: const Color.fromARGB(255, 29, 27, 32),
+          surface: const Color.fromARGB(255, 20, 18, 24),
+        ),
     useMaterial3: true,
     iconTheme: const IconThemeData(color: Colors.white12),
     appBarTheme: AppBarTheme(
       centerTitle: true,
-      iconTheme: IconThemeData(
-        color: MyColors.themeColors[600],
-      ),
+      iconTheme: IconThemeData(color: MyColors.themeColors[600]),
     ),
-    tabBarTheme: const TabBarTheme(
-      unselectedLabelStyle: TextStyle(
-        color: Colors.white12,
-      ),
+    tabBarTheme: const TabBarThemeData(
+      unselectedLabelStyle: TextStyle(color: Colors.white12),
     ),
     /*This theme affects the selected text and its handler whether TextField or SelectableText*/
     textSelectionTheme: TextSelectionThemeData(
@@ -94,13 +84,9 @@ class MyTheme {
       selectionHandleColor: MyColors.themeColors[300],
     ),
     inputDecorationTheme: InputDecorationTheme(
-      hintStyle: const TextStyle(
-        color: Colors.white12,
-      ),
+      hintStyle: const TextStyle(color: Colors.white12),
       enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(
-          color: Colors.white12,
-        ),
+        borderSide: const BorderSide(color: Colors.white12),
         borderRadius: BorderRadius.circular(15),
       ),
     ),
@@ -156,9 +142,10 @@ class MyTheme {
 
   TextStyle get appBarTitleStyle {
     return TextStyle(
-        fontSize: 16.sp,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 2,
-        color: MyColors.themeColors[300]);
+      fontSize: 16.sp,
+      fontWeight: FontWeight.bold,
+      letterSpacing: 2,
+      color: MyColors.themeColors[300],
+    );
   }
 }

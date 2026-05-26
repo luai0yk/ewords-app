@@ -25,11 +25,7 @@ class QuizTab extends StatefulWidget {
   final UnitModel unit;
   final TabController tabController;
 
-  const QuizTab({
-    super.key,
-    required this.unit,
-    required this.tabController,
-  });
+  const QuizTab({super.key, required this.unit, required this.tabController});
 
   @override
   State<QuizTab> createState() => _QuizTabState();
@@ -114,9 +110,11 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
                           Text(
                             provider.listWords.isNotEmpty
                                 ? provider.sanitizeDefinition(
-                                    provider.listWords[provider.questionNumber]
+                                    provider
+                                        .listWords[provider.questionNumber]
                                         .definition,
-                                    provider.correctAnswer)
+                                    provider.correctAnswer,
+                                  )
                                 : "Loading...",
                             style: MyTheme().mainTextStyle,
                           ),
@@ -135,11 +133,12 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
                                   curve: Curves.easeOutCubic,
                                   builder: (context, value, _) =>
                                       LinearProgressIndicator(
-                                    color: MyColors.themeColors[400],
-                                    backgroundColor: MyColors.themeColors[50],
-                                    value: value,
-                                    minHeight: 24.h,
-                                  ),
+                                        color: MyColors.themeColors[400],
+                                        backgroundColor:
+                                            MyColors.themeColors[50],
+                                        value: value,
+                                        minHeight: 24.h,
+                                      ),
                                 ),
                               ),
                               Padding(
@@ -174,31 +173,21 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
                       children: [
                         const SizedBox(width: 5),
                         AppBadge(
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedBubbleChatQuestion,
-                            color: MyColors.themeColors[300]!,
-                          ).icon,
+                          icon: Icons.quiz_outlined,
                           text: '${provider.questionNumber + 1} / 20',
                         ),
                         SizedBox(width: 5.h),
                         AppBadge(
                           backgroundColor: Colors.green[50]!,
                           textColor: Colors.green,
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                            color: MyColors.themeColors[300]!,
-                          ).icon,
+                          icon: Icons.check_circle_outline_rounded,
                           text: '${provider.correctCount}',
                         ),
                         SizedBox(width: 5.h),
                         AppBadge(
                           backgroundColor: Colors.red[50]!,
                           textColor: Colors.red,
-                          icon: HugeIcon(
-                            icon:
-                                HugeIcons.strokeRoundedMultiplicationSignCircle,
-                            color: MyColors.themeColors[300]!,
-                          ).icon,
+                          icon: Icons.cancel_outlined,
                           text: '${provider.wrongCount}',
                         ),
                         const Spacer(),
@@ -216,21 +205,25 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
                                     onPressed: () {
                                       DialogHelper.show(
                                         context: context,
-                                        pageBuilder: (context, animation,
-                                            secondaryAnimation) {
-                                          return AppDialog(
-                                            title: 'Rewarded Ad',
-                                            content:
-                                                'Watch an ad and get 6 diamonds.',
-                                            okayText: 'Watch Ad',
-                                            onOkay: () {
-                                              context
-                                                  .read<RewardAdManager>()
-                                                  .showRewardedAd();
+                                        pageBuilder:
+                                            (
+                                              context,
+                                              animation,
+                                              secondaryAnimation,
+                                            ) {
+                                              return AppDialog(
+                                                title: 'Rewarded Ad',
+                                                content:
+                                                    'Watch an ad and get 6 diamonds.',
+                                                okayText: 'Watch Ad',
+                                                onOkay: () {
+                                                  context
+                                                      .read<RewardAdManager>()
+                                                      .showRewardedAd();
+                                                },
+                                                onCancel: () => null,
+                                              );
                                             },
-                                            onCancel: () => null,
-                                          );
-                                        },
                                       );
                                     },
                                   ),
@@ -258,13 +251,14 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children:
-                          List.generate(provider.answerChoices.length, (index) {
+                      children: List.generate(provider.answerChoices.length, (
+                        index,
+                      ) {
                         String choice = provider.answerChoices[index];
                         Color? buttonColor =
                             Theme.of(context).brightness == Brightness.light
-                                ? MyColors.themeColors[50]
-                                : MyColors.themeColors[50]!.withOpacity(0.1);
+                            ? MyColors.themeColors[50]
+                            : MyColors.themeColors[50]!.withOpacity(0.1);
                         Widget buttonChild = Text(
                           choice,
                           style: TextStyle(
@@ -306,7 +300,7 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
                                 const HugeIcon(
                                   icon: HugeIcons.strokeRoundedArrowRight04,
                                   color: Colors.white,
-                                )
+                                ),
                               ],
                             );
                           }
@@ -361,8 +355,8 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
                     child: provider.isPaused
                         ? _buildPauseScreen(provider)
                         : provider.isQuizCompleted.value
-                            ? _buildCompletionScreen(provider)
-                            : _buildStartScreen(provider),
+                        ? _buildCompletionScreen(provider)
+                        : _buildStartScreen(provider),
                   ),
                 ),
               ],
@@ -381,9 +375,9 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
         Text(
           'Quiz for unit ${widget.unit.unitId}',
           style: MyTheme().mainTextStyle.copyWith(
-                fontSize: 22.sp,
-                color: MyColors.themeColors[300],
-              ),
+            fontSize: 22.sp,
+            color: MyColors.themeColors[300],
+          ),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 20.h),
@@ -392,30 +386,23 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
             children: [
               Text(
                 'Previous Saved Score',
-                style: MyTheme().secondaryTextStyle.copyWith(
-                      fontSize: 14.sp,
-                    ),
+                style: MyTheme().secondaryTextStyle.copyWith(fontSize: 14.sp),
               ),
               SizedBox(height: 10.h),
-              StarsRate(
-                score: _unitsProvider!.score ?? 0,
-                size: 40,
-              ),
+              StarsRate(score: _unitsProvider!.score ?? 0, size: 40),
               SizedBox(height: 10.h),
               Text(
                 '${_unitsProvider!.score?.toInt() ?? 0}%',
                 style: MyTheme().mainTextStyle.copyWith(
-                      fontSize: 30.sp,
-                      color: MyColors.themeColors[300],
-                    ),
+                  fontSize: 30.sp,
+                  color: MyColors.themeColors[300],
+                ),
               ),
               SizedBox(height: 5.h),
               Text(
                 'You answered ${_unitsProvider!.answeredQuestionCount ?? 0} out of 20 questions correctly.',
                 textAlign: TextAlign.center,
-                style: MyTheme().secondaryTextStyle.copyWith(
-                      fontSize: 14.sp,
-                    ),
+                style: MyTheme().secondaryTextStyle.copyWith(fontSize: 14.sp),
               ),
             ],
           ),
@@ -447,33 +434,27 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
         Text(
           'Quiz Paused',
           style: MyTheme().mainTextStyle.copyWith(
-                fontSize: 24.sp,
-                color: MyColors.themeColors[300],
-              ),
+            fontSize: 24.sp,
+            color: MyColors.themeColors[300],
+          ),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 20.h),
         Text(
           'Current Progress',
-          style: MyTheme().secondaryTextStyle.copyWith(
-                fontSize: 16.sp,
-              ),
+          style: MyTheme().secondaryTextStyle.copyWith(fontSize: 16.sp),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 10.h),
         Text(
           'Question ${provider.questionNumber + 1} of 20',
-          style: MyTheme().mainTextStyle.copyWith(
-                fontSize: 18.sp,
-              ),
+          style: MyTheme().mainTextStyle.copyWith(fontSize: 18.sp),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 5.h),
         Text(
           'Correct: ${provider.correctCount} | Wrong: ${provider.wrongCount}',
-          style: MyTheme().secondaryTextStyle.copyWith(
-                fontSize: 16.sp,
-              ),
+          style: MyTheme().secondaryTextStyle.copyWith(fontSize: 16.sp),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 30.h),
@@ -498,10 +479,7 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        StarsRate(
-          score: (provider.correctCount / 20) * 100,
-          size: 50,
-        ),
+        StarsRate(score: (provider.correctCount / 20) * 100, size: 50),
         SizedBox(height: 30.h),
         MyCard(
           padding: EdgeInsets.all(14.sp),
@@ -511,24 +489,20 @@ class _QuizTabState extends State<QuizTab> with WidgetsBindingObserver {
               Text(
                 '${((provider.correctCount / 20) * 100).toInt()}%',
                 style: MyTheme().mainTextStyle.copyWith(
-                      fontSize: 40.sp,
-                      color: MyColors.themeColors[300],
-                    ),
+                  fontSize: 40.sp,
+                  color: MyColors.themeColors[300],
+                ),
               ),
               SizedBox(height: 10.h),
               Text(
                 'You answered ${provider.correctCount} out of 20 questions correctly.',
                 textAlign: TextAlign.center,
-                style: MyTheme().secondaryTextStyle.copyWith(
-                      fontSize: 14.sp,
-                    ),
+                style: MyTheme().secondaryTextStyle.copyWith(fontSize: 14.sp),
               ),
               SizedBox(height: 30.h),
               Text(
                 'Keep studying and try hard',
-                style: MyTheme().secondaryTextStyle.copyWith(
-                      fontSize: 16.sp,
-                    ),
+                style: MyTheme().secondaryTextStyle.copyWith(fontSize: 16.sp),
               ),
             ],
           ),
