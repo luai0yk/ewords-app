@@ -1,7 +1,7 @@
-import 'package:ewords/provider/diamonds_provider.dart';
-import 'package:ewords/provider/quiz_provider.dart';
-import 'package:ewords/provider/units_provider.dart';
-import 'package:ewords/utils/ads/reward_ad_manager.dart';
+import 'package:ewords/core/utils/ads/reward_ad_manager.dart';
+import 'package:ewords/features/home/provider/units_provider.dart';
+import 'package:ewords/features/unit_quiz/provider/quiz_provider.dart';
+import 'package:ewords/shared/provider/diamonds_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -9,14 +9,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
-import '../../provider/favorite_words_provider.dart';
-import '../../provider/gnav_provider.dart';
-import '../../provider/tabbar_icons_visibility_provider.dart';
-import '../provider/dictionary_provider.dart';
-import '../provider/settings_provider.dart';
-import '../provider/tts_provider.dart';
-import '../theme/my_theme.dart';
-import 'ui/pages/home_page.dart';
+import 'core/theme/my_theme.dart';
+import 'features/app_shell/presentation/home_page.dart';
+import 'features/app_shell/provider/gnav_provider.dart';
+import 'features/dictionary/provider/dictionary_provider.dart';
+import 'features/favorite/provider/favorite_words_provider.dart';
+import 'features/settings/provider/settings_provider.dart';
+import 'features/unit/provider/tabbar_icons_visibility_provider.dart';
+import 'shared/provider/tts_provider.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +32,8 @@ void main() async {
         ChangeNotifierProvider(create: (context) => TTSProvider()),
         ChangeNotifierProvider(create: (context) => GNavProvider()),
         ChangeNotifierProvider(
-            create: (context) => TabBarIconsVisibilityProvider()),
+          create: (context) => TabBarIconsVisibilityProvider(),
+        ),
         ChangeNotifierProvider(create: (context) => QuizProvider()),
         ChangeNotifierProvider(create: (context) => UnitsProvider()),
         ChangeNotifierProvider(create: (context) => DiamondsProvider()),
@@ -98,8 +99,8 @@ class _MyAppState extends State<MyApp> {
                 themeMode: provider.themeState == 'Light'
                     ? ThemeMode.light
                     : provider.themeState == 'Dark'
-                        ? ThemeMode.dark
-                        : ThemeMode.system,
+                    ? ThemeMode.dark
+                    : ThemeMode.system,
                 debugShowCheckedModeBanner: false,
                 home: const HomePage(),
               );
