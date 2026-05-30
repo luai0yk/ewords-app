@@ -52,7 +52,7 @@ SQLite
 # Getting Started
 
 ## Clone the repository
-git clone https://github.com/your-username/ewords-app.git
+git clone https://github.com/luai0yk/ewords-app.git
 
 ## Open the project
 cd ewords
