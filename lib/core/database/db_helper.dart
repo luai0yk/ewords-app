@@ -23,7 +23,7 @@ class DBHelper {
     String path = join(documentsDirectory.path, "unit_words.db");
     bool dbExists = await io.File(path).exists();
     if (!dbExists) {
-      ByteData data = await rootBundle.load(join("assets/db", "unit_words.db"));
+      ByteData data = await rootBundle.load(join("assets/db", "words.db"));
       List<int> bytes = data.buffer.asUint8List(
         data.offsetInBytes,
         data.lengthInBytes,

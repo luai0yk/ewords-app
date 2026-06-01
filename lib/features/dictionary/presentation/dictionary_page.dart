@@ -79,9 +79,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 color: MyColors.themeColors[300]!,
               ),
             ),
-            snap: true,
-            floating: true,
-            pinned: false,
+            pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               titlePadding: EdgeInsets.only(
@@ -94,7 +92,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'word dictionary'.toUpperCase(), // Title of the page
+                    'word dictionary'.toUpperCase(),
                     style: MyTheme().appBarTitleStyle,
                   ),
                   const SizedBox(height: 20),
@@ -104,13 +102,18 @@ class _DictionaryPageState extends State<DictionaryPage> {
                     style: MyTheme().mainTextStyle,
                     controller: _textEditingController,
                     cursorRadius: const Radius.circular(10),
-                    // controller: _controller, // Uncomment to use the search functionality
                     decoration: InputDecoration(
-                      hintText: 'SEARCH..', // Placeholder text
+                      hintText: 'SEARCH..',
                       contentPadding: EdgeInsets.zero,
-                      prefixIcon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedSearch01,
-                        color: MyColors.themeColors[300]!,
+                      prefixIcon: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Center(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedSearch01,
+                            color: MyColors.themeColors[300]!,
+                          ),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
@@ -124,10 +127,8 @@ class _DictionaryPageState extends State<DictionaryPage> {
               ),
             ),
           ),
-          // Consumer widget to listen for changes in DictionaryProvider
           Consumer<DictionaryProvider>(
             builder: (context, provider, child) {
-              // Show loading indicator while fetching data
               return provider.isLoading
                   ? const SliverFillRemaining(
                       child: Center(
@@ -135,7 +136,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
                       ),
                     )
                   : provider.wordList.isEmpty
-                  // Show message if no words are found
                   ? SliverFillRemaining(
                       hasScrollBody: false,
                       child: Center(
@@ -151,7 +151,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
                     )
                   : SliverList.builder(
                       itemCount: provider.wordList.length,
-                      // Number of words
                       itemBuilder: (context, index) {
                         WordModel word = provider.wordList[index];
 
@@ -202,7 +201,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
                                   );
                                 },
                               ),
-                              // Favorite icon button
                               Selector<FavoriteWordsProvider, bool>(
                                 selector: (context, provider) =>
                                     provider.isFavorite(word.id),

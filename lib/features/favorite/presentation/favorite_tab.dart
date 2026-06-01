@@ -1,4 +1,3 @@
-import 'package:ewords/core/database/favorite_word_helper.dart';
 import 'package:ewords/core/utils/helper/ui/dialog_helper.dart';
 import 'package:ewords/shared/widgets/app_dialog.dart';
 import 'package:ewords/shared/widgets/word_detail.dart';
@@ -75,10 +74,9 @@ class _FavoriteTabState extends State<FavoriteTab> {
         ),
       ),
       body: Consumer<FavoriteWordsProvider>(
-        builder: (context, favoriteWordsProvider, child) {
+        builder: (context, provider, child) {
           return FutureBuilder<List<FavoriteWordModel>>(
-            future: FavoriteWordHelper.instance
-                .getFavorites(), // Fetch favorites from database
+            future: provider.getFavorites(),
             builder: (context, snapshot) {
               // Handle loading state
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -169,9 +167,7 @@ class _FavoriteTabState extends State<FavoriteTab> {
                       ),
                       IconButton(
                         onPressed: () async {
-                          await favoriteWordsProvider.deleteFavorite(
-                            id: favorite.id,
-                          );
+                          await provider.deleteFavorite(id: favorite.id);
                         },
                         tooltip: 'Delete',
                         icon: HugeIcon(

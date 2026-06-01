@@ -18,16 +18,12 @@ class UnitModel {
     Map<String, dynamic> map, {
     List<WordModel>? words,
   }) {
-    /*Split the unit_passage field by its lines into a list then get
-    * the first item of it which holds the unit_passage title*/
-    String title = map['unit_passage'].split('\n').first;
-
-    /*Split the unit_passage field by its line into a list using split('\n') function*/
-    List<String> lines = map['unit_passage'].split('\n');
-
-    /*Skip or delete the first line which holds the unit_passage title
-    * then convert the list into one String value again using join('') function*/
-    String passage = lines.skip(1).join('\n');
+    final String passageRaw = (map['unit_passage'] as String?) ?? '';
+    final List<String> lines = passageRaw.isEmpty
+        ? const <String>[]
+        : passageRaw.split('\n');
+    final String title = lines.isNotEmpty ? lines.first : '';
+    final String passage = lines.length > 1 ? lines.skip(1).join('\n') : '';
 
     // Create a new PassageModel instance from a Map
     return UnitModel(
@@ -36,7 +32,7 @@ class UnitModel {
       bookId: map['book_id'],
       passageTitle: title,
       passage: passage,
-      words: words!,
+      words: words ?? const <WordModel>[],
     );
   }
 }

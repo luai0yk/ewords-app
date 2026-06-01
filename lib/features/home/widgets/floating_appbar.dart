@@ -99,7 +99,7 @@ class FloatingAppBar extends StatelessWidget {
                       textColor: Colors.white,
                     ),
                   ),
-                  const TextSpan(text: ' unit_words'),
+                  const TextSpan(text: 'words'),
                 ],
               ),
             ),
