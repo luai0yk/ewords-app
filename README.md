@@ -36,6 +36,10 @@ Flutter
 
 Dart
 
+Provider
+
+TTS
+
 SQLite
 
 
